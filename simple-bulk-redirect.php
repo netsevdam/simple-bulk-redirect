@@ -167,32 +167,30 @@ function simple_bulk_redirect_sanitize_redirect_url( $url ) {
 
 // === REDIRECT EXECUTION FUNCTION ===
 function simple_bulk_redirect_do_redirect( $redirect_url ) {
-	if ( empty( $redirect_url ) ) {
-		return;
-	}
+    if ( empty( $redirect_url ) ) {
+        return;
+    }
 
-	// Sanitize the URL first
-	$redirect_url = simple_bulk_redirect_sanitize_redirect_url( $redirect_url );
+    $redirect_url = simple_bulk_redirect_sanitize_redirect_url( $redirect_url );
 
-	// Check for dangerous URLs
-	if ( simple_bulk_redirect_is_dangerous_url( $redirect_url ) ) {
-		return;
-	}
+    if ( simple_bulk_redirect_is_dangerous_url( $redirect_url ) ) {
+        return;
+    }
 
-	// External URL
-	if ( preg_match( '#^https?://#i', $redirect_url ) ) {
-		$validated_url = wp_http_validate_url( $redirect_url );
-		if ( $validated_url ) {
-			wp_safe_redirect( $validated_url, 301 );
-			exit;
-		}
-	}
+    // External URL
+    if ( preg_match( '#^https?://#i', $redirect_url ) ) {
+        $validated_url = wp_http_validate_url( $redirect_url );
+        if ( $validated_url ) {
+            wp_safe_redirect( $validated_url, 301 );
+            exit;
+        }
+    }
 
-	// Home or internal paths
-	$redirect_url = ltrim( $redirect_url, '/' );
-	$safe_path    = sanitize_text_field( $redirect_url );
-	wp_redirect( home_url( '/' . $safe_path ), 301 );
-	exit;
+    // Internal redirect
+    $redirect_url = ltrim( $redirect_url, '/' );
+    $safe_path    = sanitize_text_field( $redirect_url );
+    wp_safe_redirect( home_url( '/' . $safe_path ), 301 );
+    exit;
 }
 
 // === ADMIN MENU ===
@@ -368,10 +366,10 @@ function simple_bulk_redirect_admin_page() {
       esc_html__( 'Old URL', 'simple-bulk-redirect' ),
       esc_html__( 'New URL', 'simple-bulk-redirect' ),
     );
-    $csv_lines[] = '"' . implode( '","', array_map( 'esc_csv', $headers ) ) . '"' . "\n";
+    $csv_lines[] = '"' . implode( '","', array_map( 'simple_bulk_redirect_esc_csv', $headers ) ) . '"' . "\n";
 
     foreach ( $redirects as $old => $new ) {
-      $row = '"' . implode( '","', array_map( 'esc_csv', array( $old, $new ) ) ) . '"' . "\n";
+      $row = '"' . implode( '","', array_map( 'simple_bulk_redirect_esc_csv', array( $old, $new ) ) ) . '"' . "\n";
       $csv_lines[] = $row;
     }
 
@@ -397,8 +395,8 @@ function simple_bulk_redirect_admin_page() {
   /**
    * Escape string for safe CSV context.
    */
-  function esc_csv( $text ) {
-    return str_replace( '"', '""', $text );
+  function simple_bulk_redirect_esc_csv( $text ) {
+      return str_replace( '"', '""', $text );
   }
 
 
